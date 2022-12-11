@@ -1,3 +1,11 @@
+#---
+# Excerpted from "Agile Web Development with Rails 6",
+# published by The Pragmatic Bookshelf.
+# Copyrights apply to this code. It may not be used to create training material,
+# courses, books, articles, and the like. Contact us if you are in doubt.
+# We make no guarantees that this code is fit for any purpose.
+# Visit http://www.pragmaticprogrammer.com/titles/rails6 for more book information.
+#---
 require 'test_helper'
 
 class ProductTest < ActiveSupport::TestCase
@@ -11,10 +19,9 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   test "product price must be positive" do
-    product = Product.new(title: "My Book Title",
+    product = Product.new(title:       "My Book Title",
                           description: "yyy",
-                          image_url: "zzz.jpg")
-
+                          image_url:   "zzz.jpg")
     product.price = -1
     assert product.invalid?
     assert_equal ["must be greater than or equal to 0.01"],
@@ -30,15 +37,16 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   def new_product(image_url)
-    product = Product.new(title: "My Book Title",
-                          description: "yyy",
-                          price: 1,
-                          image_url: "zzz.jpg")
+    Product.new(title:       "My Book Title",
+                description: "yyy",
+                price:       1,
+                image_url:   image_url)
   end
 
-  test "image_url" do
-    ok = %w{ fred.gif fred.jpg fred.png FRED.JPG FRED.Jpg http://a.b.c./x/y/z/fred.gif}
-    bad = %w{ fred.doc fred.gif/more fred.gif/more }
+  test "image url" do
+    ok = %w{ fred.gif fred.jpg fred.png FRED.JPG FRED.Jpg
+             http://a.b.c/x/y/z/fred.gif }
+    bad = %w{ fred.doc fred.gif/more fred.gif.more }
 
     ok.each do |image_url|
       assert new_product(image_url).valid?,
@@ -47,7 +55,29 @@ class ProductTest < ActiveSupport::TestCase
 
     bad.each do |image_url|
       assert new_product(image_url).invalid?,
-             "#{image_url} shouldn't be invalid"
+             "#{image_url} shouldn't be valid"
     end
   end
+
+  test "product is not valid without a unique title" do
+    product = Product.new(title:       products(:ruby).title,
+                          description: "yyy",
+                          price:       1,
+                          image_url:   "fred.gif")
+
+    assert product.invalid?
+    assert_equal ["has already been taken"], product.errors[:title]
+  end
+
+  test "product is not valid without a unique title - i18n" do
+    product = Product.new(title:       products(:ruby).title,
+                          description: "yyy",
+                          price:       1,
+                          image_url:   "fred.gif")
+
+    assert product.invalid?
+    assert_equal [I18n.translate('errors.messages.taken')],
+                 product.errors[:title]
+  end
+
 end
